@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tampiguessr - Mi Mapa</title>
+
+    <!-- Fuentes de Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Preload de imÃ¡genes -->
+    <link rel="preload" href="img/logo.ico" as="image">
+    <link rel="preload" href="img/play.png" as="image">
+    <link rel="preload" href="img/restart.png" as="image">
+    <link rel="preload" href="img/tampico.jpg" as="image">
+    <link rel="preload" href="img/tampiguessr.png" as="image">
+    <link rel="preload" href="img/logo.png" as="image">
+    <link rel="preload" href="img/recLoc.png" as="image">
+
+    <style>
+        :root {
+            --primary-color: #cc302e;
+            --primary-dark: #a82523;
+            --secondary-color: #2d3748;
+            --accent-color: #00b4d8;
+            --dark-bg: #0f172a;
+            --light-bg: #f8fafc;
+            --text-light: #f1f5f9;
+            --text-muted: #94a3b8;
+            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.2);
+            --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius-lg: 20px;
+            --border-radius-md: 12px;
+            --border-radius-sm: 8px;
+            --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --glass-bg: rgba(15, 23, 42, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--text-light);
+        }
+
+        /* --- Pantalla Principal --- */
+        #mainScreen {
+            height: 100vh;
+            width: 100%;
+            background: linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)), 
+                        url(img/tampico.jpg);
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            position: fixed;
+            top: 0;
+            left: 0;
+            backdrop-filter: blur(10px);
+            transition: opacity 0.8s ease-in-out, visibility 0.8s;
+        }
+
+        #mainScreen.oculto {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius-lg);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 40px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .tampiguessr {
+            width: 500px;
+            max-width: 80vw;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+            transition: var(--transition-smooth);
+        }
+
+        .tampiguessr:hover {
+            transform: scale(1.02);
+        }
+
+        .empBtn {
+            font-size: 6vh;
+            cursor: pointer;
+            width: 22vh;
+            height: 22vh;
+            padding: 3vh;
+            color: #ffffff;
+            background: linear-gradient(145deg, var(--primary-color), var(--primary-dark));
+            border-radius: 50%;
+            border: none;
+            transition: var(--transition-smooth);
+            background-image: url(img/play.png);
+            background-repeat: no-repeat;
+            background-size: 40%;
+            background-position: center;
+            box-shadow: 0 15px 35px rgba(204, 48, 46, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .empBtn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .empBtn:hover {
+            transform: scale(1.15) rotate(5deg);
+            box-shadow: 0 20px 40px rgba(204, 48, 46, 0.6);
+        }
+
+        .empBtn:hover::before {
+            left: 100%;
+        }
+
+        /* --- Barra Superior --- */
+        #topBar {
+            padding: 0 40px;
+            align-items: center;
+            justify-content: space-between;
+            display: flex;
+            position: fixed;
+            height: 80px;
+            width: 100%;
+            z-index: 100;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .home-logo {
+            height: 50px;
+            width: auto;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        }
+
+        .home-logo:hover {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--glass-border);
+            min-width: 150px;
+            transition: var(--transition-smooth);
+        }
+
+        .stat-box:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .indicadores-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .indicadores {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-light);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* --- Mapa y Street View --- */
+        #game-container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #street-view {
+            height: 100%;
+            width: 100%;
+            filter: saturate(1.1) contrast(1.1);
+        }
+
+        #map {
+            height: 280px;
+            width: 400px;
+            border-radius: var(--border-radius-md);
+            transition: var(--transition-smooth);
+            position: absolute;
+            bottom: 140px;
+            right: 30px;
+            z-index: 50;
+            border: 2px solid var(--glass-border);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+
+        /* Controles del mapa mejorados */
+        .gm-style .gm-zoom-control {
+            background: var(--glass-bg) !important;
+            border-radius: var(--border-radius-sm) !important;
+            border: 1px solid var(--glass-border) !important;
+            box-shadow: var(--shadow-sm) !important;
+        }
+
+        .gm-style .gm-zoom-control i {
+            color: var(--text-light) !important;
+        }
+
+        /* --- Botones de Interfaz --- */
+        .game-controls {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            z-index: 60;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: flex-end;
+        }
+
+        .advBtn {
+            background: linear-gradient(145deg, var(--primary-color), var(--primary-dark));
+            border: none;
+            border-radius: var(--border-radius-md);
+            width: 180px;
+            color: var(--text-light);
+            height: 60px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 18px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .advBtn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(204, 48, 46, 0.4);
+            letter-spacing: 2px;
+        }
+
+        .advBtn:active {
+            transform: translateY(-1px);
+        }
+
+        .volverBtn {
+            background: linear-gradient(145deg, var(--accent-color), #0096c7);
+            border: none;
+            height: 60px;
+            width: 60px;
+            border-radius: 50%;
+            background-image: url(img/recLoc.png);
+            background-repeat: no-repeat;
+            background-size: 50%;
+            background-position: center;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            box-shadow: var(--shadow-md);
+        }
+
+        .volverBtn:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 15px 30px rgba(0, 180, 216, 0.4);
+        }
+
+        /* Tooltip mejorado */
+        .volverBtn .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background: var(--glass-bg);
+            color: white;
+            padding: 12px;
+            font-size: 14px;
+            text-align: center;
+            border-radius: var(--border-radius-sm);
+            font-weight: 500;
+            position: absolute;
+            bottom: 70px;
+            right: -70px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .volverBtn:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* --- Panel de Resultados --- */
+        .resPanel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            position: fixed;
+            height: 280px;
+            width: 90%;
+            max-width: 1200px;
+            z-index: 200;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            opacity: 0;
+            border-radius: var(--border-radius-lg);
+            border: 1px solid var(--glass-border);
+            display: none;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-around;
+            padding: 40px;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .resPanel.visible {
+            display: flex;
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .resPanel.ocultar {
+            opacity: 0;
+            transform: translateX(-50%) translateY(100px);
+        }
+
+        .result-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--glass-border);
+            min-width: 250px;
+            transition: var(--transition-smooth);
+        }
+
+        .result-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
+        }
+
+        .priP {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 56px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .secP {
+            font-size: 16px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .contBtn {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(145deg, var(--primary-color), var(--primary-dark));
+            background-image: url(img/play.png);
+            border-radius: 50%;
+            background-repeat: no-repeat;
+            background-size: 35%;
+            background-position: center;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            box-shadow: var(--shadow-md);
+        }
+
+        .contBtn:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 15px 30px rgba(204, 48, 46, 0.4);
+        }
+
+        /* --- Pantalla de PuntuaciÃ³n Final --- */
+        #puntuacionTot {
+            z-index: 999;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1a202c 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
+        }
+
+        #puntuacionTot.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .final-score-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 60px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            border-radius: var(--border-radius-lg);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-lg);
+            max-width: 600px;
+            width: 90%;
+        }
+
+        .final-score-title {
+            margin: 0 0 20px 0;
+            color: var(--text-light);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 48px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .final-score-num {
+            margin: 0 0 40px 0;
+            color: var(--text-light);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 96px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .actBtn {
+            font-size: 6vh;
+            cursor: pointer;
+            width: 22vh;
+            height: 22vh;
+            padding: 3vh;
+            color: #ffffff;
+            background: linear-gradient(145deg, var(--accent-color), #0096c7);
+            border-radius: 50%;
+            border: none;
+            transition: var(--transition-smooth);
+            background-image: url(img/restart.png);
+            background-repeat: no-repeat;
+            background-size: 40%;
+            background-position: center;
+            box-shadow: 0 15px 35px rgba(0, 180, 216, 0.4);
+        }
+
+        .actBtn:hover {
+            transform: scale(1.15) rotate(180deg);
+            box-shadow: 0 20px 40px rgba(0, 180, 216, 0.6);
+        }
+
+        /* --- Efectos de PartÃ­culas --- */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 1200px) {
+            .resPanel {
+                flex-direction: column;
+                height: auto;
+                width: 95%;
+                padding: 30px;
+                gap: 20px;
+            }
+            
+            .result-card {
+                min-width: 200px;
+                padding: 20px;
+            }
+            
+            #map {
+                width: 350px;
+                height: 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #topBar {
+                padding: 0 20px;
+                height: 70px;
+            }
+            
+            .stat-box {
+                min-width: 120px;
+                padding: 10px 15px;
+            }
+            
+            .indicadores {
+                font-size: 22px;
+            }
+            
+            .tampiguessr {
+                width: 300px;
+            }
+            
+            #map {
+                width: 300px;
+                height: 200px;
+                right: 20px;
+                bottom: 120px;
+            }
+            
+            .game-controls {
+                right: 20px;
+                bottom: 20px;
+            }
+            
+            .advBtn {
+                width: 150px;
+                height: 50px;
+                font-size: 16px;
+            }
+            
+            .volverBtn {
+                width: 50px;
+                height: 50px;
+            }
+        }
+
+        /* --- Animaciones adicionales --- */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* --- Scrollbar personalizada --- */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(var(--primary-color), var(--accent-color));
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(var(--primary-dark), #0096c7);
+        }
+    </style>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-analytics.js"></script>
+</head>
+
+<body>
+
+    <!-- Efecto de partÃ­culas -->
+    <div class="particles" id="particles"></div>
+
+    <div id="mainScreen">
+        <div class="logo-container">
+            <img class="tampiguessr" id="logoTampiguessr" src="img/tampiguessr.png" alt="TampiGuessr">
+            <button onclick="empezarJuego()" class="empBtn pulse"></button>
+        </div>
+    </div>
+
+    <div id="puntuacionTot">
+        <div class="final-score-container">
+            <p class="final-score-title">PuntuaciÃ³n Total</p>
+            <p id="pPuntuacion" class="final-score-num">0</p>
+            <button onclick="restart()" class="actBtn"></button>
+        </div>
+    </div>
+
+    <div id="topBar">
+        <img onclick="home()" class="home-logo" src="img/logo.png" alt="Home">
+        <div class="stats-container">
+            <div class="stat-box">
+                <p class="indicadores-label">Ronda</p>
+                <p id="rondaind" class="indicadores">1/5</p>
+            </div>
+            <div class="stat-box">
+                <p class="indicadores-label">PuntuaciÃ³n</p>
+                <p id="puntuacionind" class="indicadores">0</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-container">
+        <div id="street-view"></div>
+        
+        <div class="game-controls">
+            <button onclick="adivinarBtn()" id="advBtn" class="advBtn">Adivinar</button>
+            <button onclick="volverBtn()" id="volverBtn" class="volverBtn">
+                <span class="tooltiptext">Da clic para volver al punto inicial</span>
+            </button>
+        </div>
+        
+        <div id="map"></div>
+    </div>
+
+    <div id="resPanel" class="resPanel">
+        <div class="result-card">
+            <p class="priP" id="distP">0</p>
+            <p class="secP">de la ubicaciÃ³n</p>
+        </div>
+        <button onclick="nextRound()" id="contBtn" class="contBtn"></button>
+        <div class="result-card">
+            <p class="priP" id="puntosP">0</p>
+            <p class="secP">de 5,000 puntos</p>
+        </div>
+    </div>
+
+    <script>
+        /* -------------------------------------------------------------------------- */
+        /* CONFIGURACIÃ“N                                */
+        /* -------------------------------------------------------------------------- */
+        const firebaseConfig = {
+            apiKey: "AIzaSyBYWFNuQrviy_T9cIGoi5g6Z3Pfw_qiOl0",
+            authDomain: "tampiguessr-67c98.firebaseapp.com",
+            projectId: "tampiguessr-67c98",
+            storageBucket: "tampiguessr-67c98.appspot.com",
+            messagingSenderId: "185565497015",
+            appId: "1:185565497015:web:76abaea169c55cfbcdaf32",
+            measurementId: "G-JK38CQCTGF"
+        };
+
+        if (typeof firebase !== 'undefined') {
+            const app = firebase.initializeApp(firebaseConfig);
+            const analytics = firebase.getAnalytics(app);
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* VARIABLES GLOBALES                           */
+        /* -------------------------------------------------------------------------- */
+        var puntosTotales = 0;
+        var markers = [];
+        var lines = [];
+        var round = 5;
+        var roundinv = 1;
+        var marker = null;
+        var menu = false;
+        var mlat = 0, mlng = 0, plat = 0, plng = 0;
+        var streetView = null;
+        var randomCoordinates = null;
+        var map = null;
+        var panel = document.getElementById("resPanel");
+
+        /* -------------------------------------------------------------------------- */
+        /* PARTÃCULAS ANIMADAS                         */
+        /* -------------------------------------------------------------------------- */
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.width = Math.random() * 5 + 2 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.background = `radial-gradient(circle, 
+                    rgba(${204 + Math.random() * 50}, ${48 + Math.random() * 50}, ${46 + Math.random() * 50}, 0.6) 0%,
+                    rgba(${0}, ${180}, ${216}, 0.3) 100%)`;
+                particle.style.borderRadius = '50%';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.top = Math.random() * 100 + 'vh';
+                particle.style.boxShadow = '0 0 20px rgba(204, 48, 46, 0.5)';
+                
+                const duration = 20 + Math.random() * 20;
+                particle.style.animation = `float ${duration}s infinite ease-in-out`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* LÃ“GICA DEL MAPA                              */
+        /* -------------------------------------------------------------------------- */
+
+        function initMap() {
+            const mapOptions = {
+                center: { lat: 22.28552, lng: -97.86614 },
+                zoom: 13,
+                zoomControl: true,
+                zoomControlOptions: {
+                    position: google.maps.ControlPosition.RIGHT_BOTTOM
+                },
+                disableDefaultUI: true,
+                draggableCursor: 'crosshair',
+                streetViewControl: false,
+                styles: [
+                    {
+                        elementType: "geometry",
+                        stylers: [{ color: "#1e293b" }]
+                    },
+                    {
+                        elementType: "labels.text.fill",
+                        stylers: [{ color: "#94a3b8" }]
+                    },
+                    {
+                        elementType: "labels.text.stroke",
+                        stylers: [{ color: "#0f172a" }]
+                    },
+                    {
+                        featureType: "road",
+                        elementType: "geometry",
+                        stylers: [{ color: "#334155" }]
+                    },
+                    {
+                        featureType: "water",
+                        elementType: "geometry",
+                        stylers: [{ color: "#1e3a8a" }]
+                    }
+                ]
+            };
+            
+            map = new google.maps.Map(document.getElementById('map'), mapOptions);
+
+            map.addListener('click', function(event) {
+                if(!menu){
+                    placeMarker(event.latLng);
+                }
+            });
+
+            initializeStreetView();
+            createParticles();
+        }
+        
+        window.initMap = initMap;
+
+        function initializeStreetView() {
+            var attempts = 0;
+            var maxAttempts = 20;
+            var streetViewService = new google.maps.StreetViewService();
+            var geocoder = new google.maps.Geocoder();
+
+            function checkStreetViewAvailability(coordinates) {
+                streetViewService.getPanorama({ location: coordinates, radius: 50 }, function(data, status) {
+                    if (status === 'OK') {
+                        var panoramaOptions = {
+                            addressControl: false,
+                            fullscreenControl: false,
+                            position: coordinates,
+                            pov: { heading: 0, pitch: 0 },
+                            zoom: 1,
+                            showRoadLabels: false,
+                            linksControl: true,
+                            clickToGo: true,
+                            fullScreenControlOptions: { position: google.maps.ControlPosition.INLINE_START_BLOCK_END },
+                            panControlOptions: { position: google.maps.ControlPosition.INLINE_START_BLOCK_END },
+                            zoomControlOptions: { position: google.maps.ControlPosition.INLINE_START_BLOCK_END }
+                        };
+                        
+                        streetView = new google.maps.StreetViewPanorama(
+                            document.getElementById('street-view'), 
+                            panoramaOptions
+                        );
+                        
+                        var actualLocation = data.location.latLng;
+                        checkAddress(actualLocation);
+
+                    } else {
+                        attempts++;
+                        if (attempts < maxAttempts) {
+                            generateAndCheckCoordinates();
+                        } else {
+                            console.warn('Max intentos alcanzados. Usando ubicaciÃ³n por defecto.');
+                            var backupCoords = { lat: 22.28552, lng: -97.86614 };
+                            checkStreetViewAvailability(backupCoords);
+                        }
+                    }
+                });
+            }
+
+            function generateAndCheckCoordinates() {
+                randomCoordinates = generateRandomCoordinates(22.210202, 22.352500, -97.904524, -97.784303);
+                checkStreetViewAvailability(randomCoordinates);
+            }
+
+            function checkAddress(locationLatLng) {
+                geocoder.geocode({ 'location': locationLatLng }, function(results, status) {
+                    if (status === 'OK' && results[0]) {
+                        if (results[0].formatted_address.includes("Ver.")) {
+                            console.log("UbicaciÃ³n en Veracruz detectada. Reintentando...");
+                            generateAndCheckCoordinates();
+                        } else {
+                            plat = locationLatLng.lat();
+                            plng = locationLatLng.lng();
+                            randomCoordinates = {lat: plat, lng: plng};
+                            console.log("UbicaciÃ³n vÃ¡lida establecida: " + plat + ", " + plng);
+                        }
+                    } else {
+                        console.error('Error geocoding:', status);
+                        plat = locationLatLng.lat();
+                        plng = locationLatLng.lng();
+                    }
+                });
+            }
+
+            generateAndCheckCoordinates();
+        }
+
+        function placeMarker(location) {
+            if (marker) {
+                marker.setMap(null);
+            }
+            
+            marker = new google.maps.Marker({
+                position: location,
+                map: map,
+                draggable: true,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 15,
+                    fillColor: "#cc302e",
+                    fillOpacity: 0.9,
+                    strokeWeight: 3,
+                    strokeColor: "#ffffff"
+                },
+                animation: google.maps.Animation.DROP
+            });
+
+            mlat = marker.getPosition().lat();
+            mlng = marker.getPosition().lng();
+
+            marker.addListener('dragend', function() {
+                mlat = marker.getPosition().lat();
+                mlng = marker.getPosition().lng();
+                marker.setAnimation(google.maps.Animation.BOUNCE);
+                setTimeout(() => marker.setAnimation(null), 700);
+            });
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* LÃ“GICA DEL JUEGO                             */
+        /* -------------------------------------------------------------------------- */
+
+        function generateRandomCoordinates(minLat, maxLat, minLng, maxLng) {
+            var randomLat = Math.random() * (maxLat - minLat) + minLat;
+            var randomLng = Math.random() * (maxLng - minLng) + minLng;
+            return { lat: randomLat, lng: randomLng };
+        }
+
+        function distanciaEntrePuntos(lat1, lon1, lat2, lon2) {
+            var radioTierra = 6371;
+            var latitud1 = degToRad(lat1);
+            var longitud1 = degToRad(lon1);
+            var latitud2 = degToRad(lat2);
+            var longitud2 = degToRad(lon2);
+            var deltaLat = latitud2 - latitud1;
+            var deltaLon = longitud2 - longitud1;
+            var a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+                    Math.cos(latitud1) * Math.cos(latitud2) *
+                    Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return radioTierra * c;
+        }
+
+        function degToRad(grados) {
+            return grados * Math.PI / 180;
+        }
+
+        function calcularPuntos(distanciaKm) {
+            var distanciaMetros = distanciaKm * 1000;
+            var areaCiudadMetrosCuadrados = 9273000; 
+            var maxDistanciaMetros = Math.sqrt(areaCiudadMetrosCuadrados * 2);
+            
+            var puntos = 5000 - ((distanciaMetros / maxDistanciaMetros) * 5000);
+            puntos = Math.max(0, puntos);
+            puntos = Math.round(puntos);
+            
+            if (puntos > 4500 && puntos < 5000) {
+                puntos += 50;
+                if (puntos > 5000) puntos = 5000;
+            }
+            return puntos;
+        }
+
+        function dibujarLineaRecta(coord1, coord2) {
+            var line = new google.maps.Polyline({
+                path: [coord1, coord2],
+                geodesic: true,
+                strokeColor: '#cc302e',
+                strokeOpacity: 0.8,
+                strokeWeight: 3,
+                strokeDashArray: [10, 5]
+            });
+            line.setMap(map);
+            lines.push(line);
+        }
+
+        function adivinarBtn() {
+            if (marker != null) {
+                menu = true;
+                
+                mlat = marker.getPosition().lat();
+                mlng = marker.getPosition().lng();
+
+                var distancia = distanciaEntrePuntos(plat, plng, mlat, mlng);
+                var puntos = calcularPuntos(distancia);
+
+                // AnimaciÃ³n de resultados
+                var distanciaTexto = distancia < 1 ? (distancia * 1000).toFixed(0) + " m" : distancia.toFixed(2) + " km";
+                document.getElementById("distP").textContent = distanciaTexto;
+                document.getElementById("puntosP").textContent = puntos.toString();
+
+                // Efecto visual del mapa
+                var mapElement = document.getElementById("map");
+                var gameControls = document.querySelector('.game-controls');
+
+                gameControls.style.opacity = '0';
+                gameControls.style.pointerEvents = 'none';
+
+                mapElement.style.width = "calc(100% - 60px)";
+                mapElement.style.height = "calc(100% - 180px)";
+                mapElement.style.top = "100px";
+                mapElement.style.right = "30px";
+                mapElement.style.bottom = "auto";
+                mapElement.style.borderRadius = "var(--border-radius-lg)";
+
+                panel.classList.remove("ocultar");
+                panel.classList.add("visible");
+
+                // Marcador de la ubicaciÃ³n correcta con animaciÃ³n
+                var correctMarker = new google.maps.Marker({
+                    position: { lat: plat, lng: plng },
+                    map: map,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 15,
+                        fillColor: "#00b4d8",
+                        fillOpacity: 0.9,
+                        strokeWeight: 3,
+                        strokeColor: "#ffffff"
+                    },
+                    animation: google.maps.Animation.BOUNCE
+                });
+                markers.push(correctMarker);
+
+                // LÃ­nea animada
+                dibujarLineaRecta({ lat: plat, lng: plng }, { lat: mlat, lng: mlng });
+
+                // Zoom para ver ambos puntos
+                var bounds = new google.maps.LatLngBounds();
+                bounds.extend(marker.getPosition());
+                bounds.extend(correctMarker.getPosition());
+                map.fitBounds(bounds, { padding: 100 });
+
+                puntosTotales += puntos;
+                document.getElementById("puntuacionind").innerHTML = puntosTotales;
+                
+                // Efecto de confeti visual
+                createConfetti();
+            } else {
+                alert("Â¡Primero coloca un marcador en el mapa!");
+            }
+        }
+
+        function createConfetti() {
+            const colors = ['#cc302e', '#00b4d8', '#ffffff', '#fbbf24'];
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'fixed';
+                confetti.style.width = Math.random() * 10 + 5 + 'px';
+                confetti.style.height = Math.random() * 10 + 5 + 'px';
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = '-10px';
+                confetti.style.opacity = '0.8';
+                confetti.style.zIndex = '9999';
+                
+                const animation = confetti.animate([
+                    { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+                    { transform: `translateY(${window.innerHeight}px) rotate(${Math.random() * 360}deg)`, opacity: 0 }
+                ], {
+                    duration: 2000 + Math.random() * 2000,
+                    easing: 'cubic-bezier(0.215, 0.610, 0.355, 1)'
+                });
+                
+                animation.onfinish = () => confetti.remove();
+                document.body.appendChild(confetti);
+            }
+        }
+
+        function nextRound() {
+            var gameControls = document.querySelector('.game-controls');
+            var mapElement = document.getElementById("map");
+
+            gameControls.style.opacity = '1';
+            gameControls.style.pointerEvents = 'all';
+            menu = false;
+
+            mapElement.style.width = "400px";
+            mapElement.style.height = "280px";
+            mapElement.style.right = "30px";
+            mapElement.style.top = "auto";
+            mapElement.style.bottom = "140px";
+            mapElement.style.borderRadius = "var(--border-radius-md)";
+
+            if(marker) marker.setMap(null);
+            marker = null;
+            
+            markers.forEach(m => m.setMap(null));
+            markers = [];
+
+            lines.forEach(l => l.setMap(null));
+            lines = [];
+
+            map.setZoom(13);
+            map.setCenter({ lat: 22.28552, lng: -97.86614 });
+
+            round--;
+            if (round > 0) {
+                initializeStreetView();
+                panel.classList.add("ocultar");
+                panel.classList.remove("visible");
+                
+                setTimeout(() => {
+                    panel.classList.remove("ocultar");
+                    panel.style.display = 'none';
+                }, 600);
+            } else {
+                document.getElementById("puntuacionTot").classList.add("visible");
+                document.getElementById("pPuntuacion").innerHTML = puntosTotales;
+            }
+            
+            if (round > 0) {
+                roundinv++;
+                document.getElementById("rondaind").innerHTML = roundinv + "/5";
+            }
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* NAVEGACIÃ“N UI                                */
+        /* -------------------------------------------------------------------------- */
+
+        function volverBtn() {
+            if (streetView && randomCoordinates) {
+                streetView.setPosition(randomCoordinates);
+                streetView.setPov({ heading: 0, pitch: 0 });
+                
+                // Efecto visual
+                const btn = document.getElementById('volverBtn');
+                btn.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    btn.style.transform = '';
+                }, 300);
+            }
+        }
+
+        function home() {
+            document.getElementById("mainScreen").classList.remove("oculto");
+            document.querySelector('.game-controls').style.opacity = '0';
+        }
+
+        function empezarJuego() {
+            document.getElementById("mainScreen").classList.add("oculto");
+            setTimeout(() => {
+                document.querySelector('.game-controls').style.opacity = '1';
+            }, 1000);
+        }
+
+        function restart() {
+            location.reload();
+        }
+
+        // Easter Egg mejorado
+        var contadorP = 0;
+        document.addEventListener("keydown", function(event) {
+            if (event.key === 'p' || event.key === 'P') {
+                contadorP++;
+                if (contadorP === 15) {
+                    var topBar = document.getElementById("topBar");
+                    if(topBar) {
+                        topBar.style.transform = 'translateY(-100%)';
+                        setTimeout(() => {
+                            topBar.style.display = "none";
+                        }, 500);
+                    }
+                }
+            }
+        });
+
+        /* -------------------------------------------------------------------------- */
+        /* ANIMACIONES INICIALES                       */
+        /* -------------------------------------------------------------------------- */
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            var imagen = document.getElementById("logoTampiguessr");
+            if(imagen){
+                setTimeout(function() {
+                    imagen.style.transform = 'scale(1)';
+                    imagen.style.opacity = "1";
+                }, 400);
+            }
+
+            // Animaciones de hover en controles
+            const advBtn = document.getElementById('advBtn');
+            advBtn.addEventListener('mouseenter', function() {
+                this.style.letterSpacing = '2px';
+            });
+            advBtn.addEventListener('mouseleave', function() {
+                this.style.letterSpacing = '1px';
+            });
+
+            // Efecto de parpadeo en el marcador de ronda
+            setInterval(() => {
+                const roundIndicator = document.getElementById('rondaind');
+                if(roundIndicator) {
+                    roundIndicator.style.transform = 'scale(1.05)';
+                    setTimeout(() => {
+                        roundIndicator.style.transform = 'scale(1)';
+                    }, 300);
+                }
+            }, 5000);
+        });
+    </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCmnaovWWqpiUbcAohj_aBYdvTC3eCZ0Lo&callback=initMap" async defer></script>
+
+</body>
+</html>
